@@ -1,5 +1,5 @@
 import type { RollupBuild } from "rollup";
-
+import { ScriptTarget } from "typescript";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";
 import { BundleEntry, BundleOptions, Bundler } from "@/bundler";
@@ -31,9 +31,22 @@ class RollupBundler implements Bundler {
 				dts({
 					compilerOptions: {
 						baseUrl: ".",
+						target: ScriptTarget.ESNext,
 						paths: {
 							"@/*": ["src/*"],
 						},
+						// Ensure dts generation
+						declaration: true,
+						noEmit: false,
+						emitDeclarationOnly: true,
+						// Speed up compilation by avoiding extra work
+						noEmitOnError: true,
+						checkJs: false,
+						declarationMap: false,
+						skipLibCheck: true,
+						preserveSymlinks: false,
+						// Disable composite as this messes with file inclusion
+						composite: false,
 					},
 				}),
 			],
