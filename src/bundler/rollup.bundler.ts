@@ -32,9 +32,7 @@ class RollupBundler implements Bundler {
 					compilerOptions: {
 						baseUrl: ".",
 						target: ScriptTarget.ESNext,
-						paths: {
-							"@/*": ["src/*"],
-						},
+						paths: this.restore(config.resolve?.alias ?? {}),
 						// Ensure dts generation
 						declaration: true,
 						noEmit: false,
@@ -52,6 +50,19 @@ class RollupBundler implements Bundler {
 			],
 			external: config.externals,
 		});
+	}
+
+	private restore(entries: Record<string, string>): Record<string, string[]> {
+		const result: Record<string, string[]> = {};
+
+		for (const [key, path] of Object.entries(entries)) {
+			result[key] = [path];
+			if (key.endsWith("/")) {
+				result[`${key}*`] = [`${path}${path.endsWith("/") ? "*" : "/*"}`];
+			}
+		}
+
+		return result;
 	}
 }
 
