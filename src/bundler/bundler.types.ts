@@ -28,6 +28,14 @@ export interface BundleConfigRetriever {
 	map(config: Config): Promise<BundleConfig[]>;
 }
 
+export interface Bundle {
+	build(): Promise<void>;
+
+	watch(): Promise<void>;
+
+	dispose(): Promise<void>;
+}
+
 export interface Bundler {
-	bundle(entry: BundleEntry, options?: BundleOptions): Promise<void>;
+	bundle(entry: BundleEntry, options?: BundleOptions): Promise<Bundle>;
 }

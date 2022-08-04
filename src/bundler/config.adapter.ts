@@ -24,7 +24,7 @@ const EXTENSIONS: Record<Module, Record<Format, string>> = {
 	},
 };
 
-class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
+export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 	async map(config: Config): Promise<BundleConfig[]> {
 		const options: BundleOptions = {
 			target: config.target,
@@ -83,8 +83,4 @@ class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 	private extension(format: Format, type: Module = "commonjs"): string {
 		return EXTENSIONS[type]?.[format] ?? "js";
 	}
-}
-
-export function convert(): BundleConfigRetriever {
-	return new ConvertingBundleConfigRetriever();
 }

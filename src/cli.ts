@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
 import { cac } from "cac";
-import pc from "picocolors";
-import { BundleEntry, BundleOptions, Bundler, Bundlers } from "@/bundler";
+import type { BundleConfig } from "@/bundler/bundler.types";
+import { bundle } from "@/bundler/bundler.worker";
+import { ConvertingBundleConfigRetriever } from "@/bundler/config.adapter";
 import { BundleIntermediateConfigResolver } from "@/config/bundle.provider";
-import { Config, ConfigResolver } from "@/config/config.types";
-import { convert } from "@/bundler/config.adapter";
-import { DiscoverableFileRetriever } from "@/util/resolver/file.resolver";
+import type { Config, ConfigResolver } from "@/config/config.types";
 import { MergeIntermediateConfigResolver } from "@/config/merge.provider";
-import { PackageConfigRetriever } from "@/util/resolver/package.resolver";
 import { PackageIntermediateConfigResolver } from "@/config/package.provider";
 import { StandardIntermediateConfigResolver } from "@/config/standard.provider";
-import { TypeScriptConfigRetriever } from "@/util/resolver/typescript.resolver";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
 import { wrap } from "@/util/array";
+import { DiscoverableFileRetriever } from "@/util/resolver/file.resolver";
+import { PackageConfigRetriever } from "@/util/resolver/package.resolver";
+import { TypeScriptConfigRetriever } from "@/util/resolver/typescript.resolver";
 
 class CommandLineConfigResolver implements ConfigResolver {
 	constructor(private readonly input?: string[]) {}
@@ -33,64 +33,65 @@ class CommandLineConfigResolver implements ConfigResolver {
 	}
 }
 
-async function config(): Promise<Config[]> {
-	console.time("⭐ Warm up in");
+async function config(): Promise<BundleConfig[]> {
+	try {
+		console.time("⭐ Warm up in");
 
-	const resolver = new BundleIntermediateConfigResolver({
-		file: new DiscoverableFileRetriever({
-			name: "tscz.config.ts",
-		}),
-		config: new MergeIntermediateConfigResolver([
-			new StandardIntermediateConfigResolver("index"),
-			new PackageIntermediateConfigResolver(
-				new PackageConfigRetriever(
-					new DiscoverableFileRetriever({
-						name: "package.json",
-					}),
+		const adapter = new ConvertingBundleConfigRetriever();
+		const resolver = new BundleIntermediateConfigResolver({
+			file: new DiscoverableFileRetriever({
+				name: "tscz.config.ts",
+			}),
+			config: new MergeIntermediateConfigResolver([
+				new StandardIntermediateConfigResolver("index"),
+				new PackageIntermediateConfigResolver(
+					new PackageConfigRetriever(
+						new DiscoverableFileRetriever({
+							name: "package.json",
+						}),
+					),
 				),
-			),
-			new TypescriptIntermediateConfigResolver(
-				new TypeScriptConfigRetriever(
-					new DiscoverableFileRetriever({
-						name: "tsconfig.json",
-					}),
+				new TypescriptIntermediateConfigResolver(
+					new TypeScriptConfigRetriever(
+						new DiscoverableFileRetriever({
+							name: "tsconfig.json",
+						}),
+					),
 				),
-			),
-			new CommandLineConfigResolver(),
-		]),
-	});
+				new CommandLineConfigResolver(),
+			]),
+		});
 
-	const configs = await resolver.get();
+		const configs = await resolver.get();
 
-	console.timeEnd("⭐ Warm up in");
-
-	return wrap(configs);
-}
-
-async function bundle(bundler: Bundler, entry: BundleEntry, options?: BundleOptions) {
-	const format = `[${entry.format}]`;
-	const name = `${pc.cyan(format)} Done bundling ${pc.gray(entry.output)}`;
-
-	console.time(name);
-	await bundler.bundle(entry, options);
-	console.timeEnd(name);
+		const entries: BundleConfig[] = [];
+		for (const config of wrap(configs)) {
+			const unwrapped = await adapter.map(config);
+			entries.push(...unwrapped);
+		}
+		return entries;
+	} finally {
+		console.timeEnd("⭐ Warm up in");
+	}
 }
 
 async function run() {
-	console.time("⚡ Done bundling in");
+	try {
+		console.time("⚡ Done bundling in");
 
-	const bundler = Bundlers.generic();
-	const configs = await config();
+		const configs = await config();
 
-	const adapter = convert();
-
-	for (const config of configs) {
-		for (const { entry, options } of await adapter.map(config)) {
-			await bundle(bundler, entry, options);
-		}
+		await Promise.all(
+			configs.map(async (entry) => {
+				await bundle(entry);
+			}),
+		);
+	} catch (error) {
+		console.error("Could not bundle", error);
+	} finally {
+		console.timeEnd("⚡ Done bundling in");
 	}
-
-	console.timeEnd("⚡ Done bundling in");
 }
 
+// eslint-disable-next-line unicorn/prefer-top-level-await
 run();

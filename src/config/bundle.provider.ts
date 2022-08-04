@@ -7,10 +7,10 @@ import {
 	IntermediateConfigProvider,
 	IntermediateConfigResolver,
 } from "@/config/config.types";
-import { Bundlers } from "@/bundler";
 import { Retriever } from "@/global.types";
 import { File } from "@/util/resolver/file.resolver";
 import { combine } from "@/util/array";
+import { EsbuildBundler } from "@/bundler/esbuild.bundler";
 
 const CONFIG_FILE_JS = "tscz.config.js";
 
@@ -23,7 +23,7 @@ export class BundleIntermediateConfigResolver implements IntermediateConfigResol
 	private readonly $file: Retriever<File>;
 	private readonly $config: Retriever<Config>;
 
-	private readonly $bundler = Bundlers.esbuild({
+	private readonly $bundler = new EsbuildBundler({
 		bundle: false,
 	});
 
@@ -46,11 +46,16 @@ export class BundleIntermediateConfigResolver implements IntermediateConfigResol
 		const { parent, path: input } = await this.$file.get();
 		const output = path.resolve(parent, CONFIG_FILE_JS);
 
-		await this.$bundler.bundle({
+		const bundle = await this.$bundler.bundle({
 			format: "cjs",
 			inputs: [input],
 			output,
 		});
+		try {
+			await bundle.build();
+		} finally {
+			await bundle.dispose();
+		}
 
 		const config = await this.load(output);
 		return (root) => {
@@ -73,6 +78,6 @@ export class BundleIntermediateConfigResolver implements IntermediateConfigResol
 
 	private async require(output: string): Promise<ExportConfig> {
 		const { default: result } = await import(output);
-		return result.default;
+		return result;
 	}
 }

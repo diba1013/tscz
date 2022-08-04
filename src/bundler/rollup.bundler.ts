@@ -1,26 +1,34 @@
 import type { RollupBuild } from "rollup";
-import { ScriptTarget } from "typescript";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";
-import { BundleEntry, BundleOptions, Bundler } from "@/bundler";
+import { ScriptTarget } from "typescript";
+import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
 
-class RollupBundler implements Bundler {
-	public async bundle(entry: BundleEntry, config: BundleOptions): Promise<void> {
+export class RollupBundler implements Bundler {
+	public async bundle(entry: BundleEntry, config: BundleOptions): Promise<Bundle> {
 		if (entry.format !== "dts") {
-			return;
+			throw new Error(`Rollup cannot bundle ${entry.format} files`);
 		}
 		const bundle = await this.create(entry, config);
-		try {
-			await bundle.write({
-				format: "esm",
-				file: entry.output,
-			});
-		} finally {
-			await bundle.close();
-		}
+		return {
+			async build() {
+				await bundle.write({
+					format: "esm",
+					file: entry.output,
+				});
+			},
+
+			async watch() {
+				// Ignore for dts
+			},
+
+			async dispose() {
+				await bundle.close();
+			},
+		};
 	}
 
-	private async create(entry: BundleEntry, config: BundleOptions): Promise<RollupBuild> {
+	private create(entry: BundleEntry, config: BundleOptions): Promise<RollupBuild> {
 		return rollup({
 			input: entry.inputs,
 			output: {
@@ -64,8 +72,4 @@ class RollupBundler implements Bundler {
 
 		return result;
 	}
-}
-
-export function roll(): Bundler {
-	return new RollupBundler();
 }
