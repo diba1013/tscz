@@ -21,6 +21,11 @@ export default defineConfig({
 			input: input("cli.ts"),
 			output: ["cjs"],
 		},
+		{
+			name: "worker",
+			input: input("worker.ts"),
+			output: ["cjs"],
+		},
 	],
 	define: {
 		__NAME__: NAME,
