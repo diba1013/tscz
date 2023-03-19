@@ -1,8 +1,10 @@
 import type { RollupBuild } from "rollup";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";
-import { ScriptTarget } from "typescript";
 import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
+
+// Need a constant here, since typescript ScriptTarget does not work with esm
+const ES_NEXT = 99;
 
 export class RollupBundler implements Bundler {
 	public async bundle(entry: BundleEntry, config: BundleOptions): Promise<Bundle> {
@@ -39,7 +41,7 @@ export class RollupBundler implements Bundler {
 				dts({
 					compilerOptions: {
 						baseUrl: ".",
-						target: ScriptTarget.ESNext,
+						target: ES_NEXT,
 						paths: this.restore(config.resolve?.alias ?? {}),
 						// Ensure dts generation
 						declaration: true,

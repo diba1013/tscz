@@ -1,5 +1,5 @@
-import { Platform } from "esbuild";
-import { Config, Format } from "@/config/config.types";
+import type { Platform } from "esbuild";
+import type { Config, Format } from "@/config/config.types";
 
 export type BundleOptions = {
 	target?: string;
@@ -16,6 +16,7 @@ export type BundleEntry = {
 	format: Format;
 	inputs: string[];
 	output: string;
+	bundle?: boolean;
 	minify?: boolean;
 };
 

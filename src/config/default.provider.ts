@@ -1,5 +1,5 @@
-import { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
-import { MaybePromise } from "@/global.types";
+import type { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
+import type { MaybePromise } from "@/global.types";
 
 export class StandardIntermediateConfigResolver implements IntermediateConfigResolver {
 	constructor(private readonly file: string) {}

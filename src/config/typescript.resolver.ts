@@ -1,6 +1,9 @@
+import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { CompilerOptions, parseConfigFileTextToJson, parseJsonConfigFileContent, sys } from "typescript";
-import { Retriever } from "@/global.types";
-import { File } from "@/util/resolver/file.resolver";
+import type { Retriever } from "@/global.types";
+
+const TYPESCRIPT_FILE = "tsconfig.json";
 
 export type TypeScriptConfig = {
 	compilerOptions: CompilerOptions;
@@ -12,17 +15,13 @@ export type TypeScriptConfigRetrieverOptions = {
 };
 
 export class TypeScriptConfigRetriever implements Retriever<TypeScriptConfig> {
-	private $file: Retriever<File>;
+	async get(root: string): Promise<TypeScriptConfig> {
+		const input = path.resolve(root, TYPESCRIPT_FILE);
+		const file = await readFile(input);
+		const content = file.toString();
 
-	constructor(file: Retriever<File>) {
-		this.$file = file;
-	}
-
-	async get(): Promise<TypeScriptConfig> {
-		const { parent, path, content = "{}" } = await this.$file.get();
-
-		const { config } = parseConfigFileTextToJson(path, content);
-		const { options, errors } = parseJsonConfigFileContent(config, sys, parent);
+		const { config } = parseConfigFileTextToJson(input, content);
+		const { options, errors } = parseJsonConfigFileContent(config, sys, root);
 		if (errors.length > 0) {
 			const cause = errors.map((error) => {
 				return new Error(error.messageText.toString());

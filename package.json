@@ -31,7 +31,7 @@
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"prepare": "husky install",
-		"build": "tsx ./src/cli.ts",
+		"build": "tsx ./src/compile.ts",
 		"build:watch": "pnpm run -s build -- --watch",
 		"test": "vitest run",
 		"test:watch": "vitest",
@@ -46,6 +46,7 @@
 		"esbuild": "^0.17.11",
 		"esbuild-plugin-alias": "^0.2.1",
 		"esbuild-plugin-replace": "^1.3.0",
+		"nanothreads": "^0.3.3",
 		"picocolors": "^1.0.0",
 		"rollup": "^3.19.1",
 		"rollup-plugin-dts": "^5.2.0"
@@ -55,17 +56,18 @@
 		"@commitlint/config-conventional": "^17.4.4",
 		"@diba1013/eslint-config": "^0.5.0",
 		"@diba1013/prettier-config": "^0.5.0",
-		"@types/node": "^18.15.0",
-		"@vitest/coverage-c8": "^0.29.2",
+		"@diba1013/tscz": "link:",
+		"@types/node": "^18.15.3",
+		"@vitest/coverage-c8": "^0.29.3",
 		"c8": "^7.13.0",
 		"eslint": "^8.36.0",
 		"husky": "^8.0.3",
 		"lint-staged": "^13.2.0",
 		"prettier": "^2.8.4",
 		"ts-node": "^10.9.1",
-		"tsx": "^3.12.3",
+		"tsx": "^3.12.5",
 		"typescript": "^4.9",
-		"vite": "^4.1.4",
-		"vitest": "^0.29.2"
+		"vite": "^4.2.0",
+		"vitest": "^0.29.3"
 	}
 }

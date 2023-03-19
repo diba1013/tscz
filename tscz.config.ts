@@ -1,5 +1,5 @@
 import { version } from "./package.json";
-import { defineConfig } from "@/index";
+import { defineConfig } from "@diba1013/tscz";
 
 const NAME = "tscz";
 const SOURCE = "src";
@@ -24,7 +24,7 @@ export default defineConfig({
 		{
 			name: "worker",
 			input: input("worker.ts"),
-			output: ["cjs"],
+			output: ["esm"],
 		},
 	],
 	define: {

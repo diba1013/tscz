@@ -1,4 +1,4 @@
-import { ExportConfig } from "@/config/config.types";
+import type { ExportConfig } from "@/config/config.types";
 
 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
 export const VERSION: string = "__VERSION__";

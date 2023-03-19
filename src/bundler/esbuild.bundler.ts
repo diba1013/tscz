@@ -3,19 +3,7 @@ import alias from "esbuild-plugin-alias";
 import { replace } from "esbuild-plugin-replace";
 import type { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
 
-export type EsbuildOptions = {
-	bundle: boolean;
-};
-
 export class EsbuildBundler implements Bundler {
-	private readonly $options: EsbuildOptions;
-
-	constructor(options?: EsbuildOptions) {
-		this.$options = options ?? {
-			bundle: true,
-		};
-	}
-
 	async bundle(entry: BundleEntry, options: BundleOptions = {}): Promise<Bundle> {
 		let bundler: BuildContext<BuildOptions> | undefined;
 		return {
@@ -54,7 +42,7 @@ export class EsbuildBundler implements Bundler {
 			format: entry.format,
 			platform: options.platform ?? "node",
 			target: options.target ?? "esnext",
-			bundle: this.$options.bundle,
+			bundle: entry.bundle ?? true,
 			entryPoints: entry.inputs,
 			outfile: entry.output,
 			external: options.externals ?? [],

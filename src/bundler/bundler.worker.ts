@@ -1,9 +1,16 @@
+import path from "node:path";
 import pc from "picocolors";
-import type { BundleConfig } from "@/bundler/bundler.types";
+import type { BundleEntry, BundleOptions } from "@/bundler/bundler.types";
 import { EsbuildBundler } from "@/bundler/esbuild.bundler";
 import { RollupBundler } from "@/bundler/rollup.bundler";
 
-export async function bundle({ entry, options = {} }: BundleConfig): Promise<void> {
+export type BundleConfiguration = {
+	parent?: string;
+	entry: BundleEntry;
+	options?: BundleOptions;
+};
+
+export async function bundle({ parent = process.cwd(), entry, options = {} }: BundleConfiguration): Promise<void> {
 	const start = Date.now();
 	try {
 		const bundler = entry.format === "dts" ? new RollupBundler() : new EsbuildBundler();
@@ -15,7 +22,7 @@ export async function bundle({ entry, options = {} }: BundleConfig): Promise<voi
 		}
 	} finally {
 		const format = pc.cyan(`[${entry.format}]`);
-		const file = pc.gray(entry.output);
+		const file = pc.gray(path.relative(parent, entry.output));
 		console.info(`${format} Done bundling ${file}: ${Date.now() - start}ms`);
 	}
 }

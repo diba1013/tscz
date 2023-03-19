@@ -1,6 +1,6 @@
-import path from "path";
-import { BundleConfig, BundleConfigRetriever, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
-import {
+import path from "node:path";
+import type { BundleConfig, BundleConfigRetriever, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
+import type {
 	Config,
 	ConfigEntry,
 	ConfigEntryOutput,

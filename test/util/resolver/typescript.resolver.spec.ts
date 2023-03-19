@@ -1,7 +1,7 @@
 import { ScriptTarget } from "typescript";
 import { describe, expect, it } from "vitest";
 import { DiscoverableFileRetriever, File } from "@/util/resolver/file.resolver";
-import { TypeScriptConfigRetriever } from "@/util/resolver/typescript.resolver";
+import { TypeScriptConfigRetriever } from "@/config/typescript.resolver";
 
 const TSCONFIG_FILE = "tsconfig.json";
 

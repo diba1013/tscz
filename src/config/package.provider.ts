@@ -1,12 +1,26 @@
-import { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
-import { Retriever } from "@/global.types";
-import { PackageConfig } from "@/util/resolver/package.resolver";
+import type { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
+import type { Retriever } from "@/global.types";
+import type { PackageConfig } from "@/config/package.resolver";
+
+export type PackageIntermediateConfigResolverOptions = {
+	config: Retriever<PackageConfig>;
+};
 
 export class PackageIntermediateConfigResolver implements IntermediateConfigResolver {
-	constructor(private readonly config: Retriever<PackageConfig>) {}
+	private readonly $config: Retriever<PackageConfig>;
 
-	async get(): Promise<IntermediateConfig> {
-		const { name, type, version, dependencies, peerDependencies } = await this.config.get();
+	constructor({ config }: PackageIntermediateConfigResolverOptions) {
+		this.$config = config;
+	}
+
+	async get(root: string): Promise<IntermediateConfig> {
+		const {
+			name,
+			type = "commonjs",
+			version,
+			dependencies = {},
+			peerDependencies = {},
+		} = await this.$config.get(root);
 
 		return {
 			type,

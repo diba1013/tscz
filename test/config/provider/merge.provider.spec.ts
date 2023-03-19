@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ConfigResolver, IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
+import type { ConfigResolver, IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
 import { MergeIntermediateConfigResolver } from "@/config/merge.provider";
 
 function stub(config: IntermediateConfig): IntermediateConfigResolver {
@@ -14,7 +14,7 @@ describe("MergeIntermediateConfigRetriever", () => {
 	it("should be empty if no configs have been provided", async () => {
 		const cut: ConfigResolver = new MergeIntermediateConfigResolver([]);
 
-		const result = await cut.get();
+		const result = await cut.get("");
 
 		expect(result).to.be.empty;
 	});
@@ -22,7 +22,7 @@ describe("MergeIntermediateConfigRetriever", () => {
 	it("should be empty if retruever return empty", async () => {
 		const cut = new MergeIntermediateConfigResolver([stub({}), stub({})]);
 
-		const result = await cut.get();
+		const result = await cut.get("");
 
 		expect(result).to.be.empty;
 	});
@@ -43,7 +43,7 @@ describe("MergeIntermediateConfigRetriever", () => {
 			}),
 		]);
 
-		const result = await cut.get();
+		const result = await cut.get("");
 
 		expect(result).to.eql({
 			name: "middle",
@@ -71,7 +71,7 @@ describe("MergeIntermediateConfigRetriever", () => {
 			]),
 		]);
 
-		const result = await cut.get();
+		const result = await cut.get("");
 
 		expect(result).to.eql({
 			name: "middle",

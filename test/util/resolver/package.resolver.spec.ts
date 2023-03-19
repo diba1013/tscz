@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PackageConfigRetriever } from "@/util/resolver/package.resolver";
+import { PackageConfigRetriever } from "@/config/package.resolver";
 import { File } from "@/util/resolver/file.resolver";
 
 describe("package", () => {

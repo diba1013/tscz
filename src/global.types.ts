@@ -17,5 +17,5 @@ export interface Retriever<T> {
 	/**
 	 * Retrieves the requested resource.
 	 */
-	get(): MaybePromise<T>;
+	get(root: string): MaybePromise<T>;
 }
