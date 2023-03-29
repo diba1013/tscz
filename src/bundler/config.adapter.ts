@@ -31,8 +31,7 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 			platform: config.platform,
 			resolve: config.resolve,
 			externals: config.externals,
-			define: config.define,
-			watch: config.watch,
+			env: config.env,
 		};
 
 		const entries = [...this.toBundleEntries(config)];

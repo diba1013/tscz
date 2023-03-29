@@ -1,7 +1,6 @@
 import type { ExportConfig } from "@/config/config.types";
 
-// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-export const VERSION: string = "__VERSION__";
+export const VERSION = process.env.VERSION ?? "unknown";
 
 export * from "@/config/config.types";
 export * from "@/global.types";

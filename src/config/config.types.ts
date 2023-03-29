@@ -97,9 +97,8 @@ export type Config = {
 	 * Define global constant replacements.
 	 *
 	 * @see https://esbuild.github.io/api/#define
-	 * @see https://www.npmjs.com/package/esbuild-plugin-replace
 	 */
-	define?: Record<string, string>;
+	env?: Record<string, string>;
 };
 
 export type ConfigEntry = {

@@ -20,10 +20,6 @@ export class RollupBundler implements Bundler {
 				});
 			},
 
-			async watch() {
-				// Ignore for dts
-			},
-
 			async dispose() {
 				await bundle.close();
 			},

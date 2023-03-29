@@ -8,8 +8,7 @@ export type BundleOptions = {
 		alias?: Record<string, string>;
 	};
 	externals?: string[];
-	define?: Record<string, string>;
-	watch?: boolean;
+	env?: Record<string, string>;
 };
 
 export type BundleEntry = {
@@ -32,11 +31,11 @@ export interface BundleConfigRetriever {
 export interface Bundle {
 	build(): Promise<void>;
 
-	watch(): Promise<void>;
-
 	dispose(): Promise<void>;
 }
 
 export interface Bundler {
 	bundle(entry: BundleEntry, options?: BundleOptions): Promise<Bundle>;
 }
+
+export type BundlerFunction = (entry: BundleEntry, options?: BundleOptions) => Promise<Bundle>;

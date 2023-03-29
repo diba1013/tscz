@@ -27,8 +27,9 @@ export default defineConfig({
 			output: ["esm"],
 		},
 	],
-	define: {
-		__NAME__: NAME,
-		__VERSION__: version,
+	env: {
+		NAME: NAME,
+		VERSION: version,
+		BUNDLED: "DONE",
 	},
 });
