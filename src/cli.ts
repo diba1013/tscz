@@ -209,30 +209,22 @@ function run(factory: FileBundlerFactory) {
 
 run(async (): Promise<FileBundler> => {
 	if (process.env.BUNDLED === "DONE") {
-		const { ThreadPool } = await import("nanothreads");
+		const { Tinypool } = await import("tinypool");
 
-		const pool = new ThreadPool<BundleConfig, { start: number; end: number }>({
-			task: WORKER_FILE,
-			type: "module",
-			count: 8,
+		const pool = new Tinypool({
+			filename: WORKER_FILE,
 		});
 
 		return {
 			build: async (entry: BundleEntry, options?: BundleOptions) => {
-				const start = Date.now();
-				const { start: request, end: response } = await pool.exec({
+				await pool.run({
 					entry,
 					options,
 				});
-				console.log(
-					`${entry.output}: ${request - start} - ${Date.now() - response} / ${Date.now() - start}: ${
-						Buffer.from(JSON.stringify({ entry, config })).length
-					}`,
-				);
 			},
 
 			dispose: async () => {
-				await pool.terminate();
+				await pool.destroy();
 			},
 		};
 	} else {

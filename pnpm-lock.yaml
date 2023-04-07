@@ -13,9 +13,6 @@ dependencies:
   esbuild-plugin-alias:
     specifier: ^0.2.1
     version: 0.2.1
-  nanothreads:
-    specifier: ^0.3.3
-    version: 0.3.3
   picocolors:
     specifier: ^1.0.0
     version: 1.0.0
@@ -25,6 +22,9 @@ dependencies:
   rollup-plugin-dts:
     specifier: ^5.2.0
     version: 5.2.0(rollup@3.19.1)(typescript@4.9.4)
+  tinypool:
+    specifier: ^0.4.0
+    version: 0.4.0
 
 devDependencies:
   '@commitlint/cli':
@@ -3127,10 +3127,6 @@ packages:
     hasBin: true
     dev: true
 
-  /nanothreads@0.3.3:
-    resolution: {integrity: sha512-Pp1YGHpGYLCVb34+2o5EAPbLrs4kyQYeco4izu7UQJnj28PQM7rF4dCOwFzma0dVcWgHeGGIEsTNbNpT2yauaw==}
-    dev: false
-
   /natural-compare-lite@1.4.0:
     resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
     dev: true
@@ -3938,6 +3934,11 @@ packages:
     resolution: {integrity: sha512-zLA1ZXlstbU2rlpA4CIeVaqvWq41MTWqLY3FfsAXgC8+f7Pk7zroaJQxDgxn1xNudKW6Kmj4808rPFShUlIRmQ==}
     engines: {node: '>=14.0.0'}
     dev: true
+
+  /tinypool@0.4.0:
+    resolution: {integrity: sha512-2ksntHOKf893wSAH4z/+JbPpi92esw8Gn9N2deXX+B0EO92hexAVI9GIZZPx7P5aYo5KULfeOSt3kMOmSOy6uA==}
+    engines: {node: '>=14.0.0'}
+    dev: false
 
   /tinyspy@1.0.2:
     resolution: {integrity: sha512-bSGlgwLBYf7PnUsQ6WOc6SJ3pGOcd+d8AA6EUnLDDM0kWEstC1JIlSZA3UNliDXhd9ABoS7hiRBDCu+XP/sf1Q==}
