@@ -12,7 +12,11 @@ export type BundleConfiguration = {
 	options?: BundleOptions;
 };
 
-export async function bundle({ parent = process.cwd(), entry, options = {} }: BundleConfiguration): Promise<void> {
+export async function bundle({
+	parent = process.cwd(),
+	entry,
+	options = {},
+}: BundleConfiguration): Promise<{ start: number; end: number }> {
 	const start = Date.now();
 	try {
 		const bundler = entry.format === "dts" ? new RollupBundler() : new EsbuildBundler();
@@ -27,6 +31,10 @@ export async function bundle({ parent = process.cwd(), entry, options = {} }: Bu
 		const file = pc.gray(path.relative(parent, entry.output));
 		console.info(`${format} Done bundling ${file}: ${Date.now() - start}ms`);
 	}
+	return {
+		start,
+		end: Date.now(),
+	};
 }
 
 if (!isMainThread) {

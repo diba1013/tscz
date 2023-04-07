@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-import os from "node:os";
 import path from "node:path";
 import { cac } from "cac";
-import { ThreadPool } from "nanothreads";
 import type { Bundle, Bundler } from "@/bundler/bundler.types";
 import { BundleConfig, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.adapter";
@@ -37,9 +35,8 @@ export type FileBundlerFactory = () => Promise<FileBundler>;
 export type ResolvedFileBundlerFactory = (bundle: Bundle) => Promise<Bundle>;
 
 async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
+	const start = Date.now();
 	try {
-		console.time("⭐ Warm up in");
-
 		const adapter = new ConvertingBundleConfigRetriever();
 		const resolver = new ExportIntermediateConfigProvider({
 			bundle: new ExportConfigRetriever(bundler),
@@ -54,25 +51,28 @@ async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
 			]),
 		});
 
-		const configs = await resolver.get(root);
+		const configs = wrap(await resolver.get(root));
 
 		const entries: BundleConfig[] = [];
-		for (const config of wrap(configs)) {
+		for (const config of configs) {
 			const unwrapped = await adapter.map(config);
 			entries.push(...unwrapped);
 		}
 		return entries;
 	} finally {
-		console.timeEnd("⭐ Warm up in");
+		console.info(`⭐ Warm up in ${Date.now() - start}ms`);
 	}
 }
 
 async function build(bundler: Bundle): Promise<Bundle> {
 	return {
 		async build() {
-			console.time("⚡ Done bundling in");
-			await bundler.build();
-			console.timeEnd("⚡ Done bundling in");
+			const start = Date.now();
+			try {
+				await bundler.build();
+			} finally {
+				console.info(`⚡ Done bundling in ${Date.now() - start}ms`);
+			}
 		},
 
 		async dispose() {
@@ -127,6 +127,7 @@ async function watch(bundler: Bundle): Promise<Bundle> {
 }
 
 async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundlerFactory): Promise<void> {
+	const start = Date.now();
 	const bundler = await factory();
 	try {
 		// Bundle beforehand to eliminate repeated lookups for build
@@ -167,12 +168,14 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 
 		// Ensure resources are disposed
 		await bundler.dispose?.();
+		console.info(`Done with stuff ${Date.now() - start}ms`);
 		// Ensure process exits in any case
 		process.exit(0);
 	} catch (error) {
 		console.error("Could not bundle", error);
 		// Ensure resources are disposed
 		await bundler.dispose?.();
+		console.info(`Done with stuff ${Date.now() - start}ms`);
 		// Ensure process exits in any case
 		process.exit(1);
 	}
@@ -206,18 +209,26 @@ function run(factory: FileBundlerFactory) {
 
 run(async (): Promise<FileBundler> => {
 	if (process.env.BUNDLED === "DONE") {
-		const pool = new ThreadPool<BundleConfig, void>({
+		const { ThreadPool } = await import("nanothreads");
+
+		const pool = new ThreadPool<BundleConfig, { start: number; end: number }>({
 			task: WORKER_FILE,
 			type: "module",
-			count: os.cpus().length,
+			count: 8,
 		});
 
 		return {
 			build: async (entry: BundleEntry, options?: BundleOptions) => {
-				await pool.exec({
+				const start = Date.now();
+				const { start: request, end: response } = await pool.exec({
 					entry,
 					options,
 				});
+				console.log(
+					`${entry.output}: ${request - start} - ${Date.now() - response} / ${Date.now() - start}: ${
+						Buffer.from(JSON.stringify({ entry, config })).length
+					}`,
+				);
 			},
 
 			dispose: async () => {
