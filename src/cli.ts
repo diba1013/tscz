@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import path from "node:path";
-import { cac } from "cac";
 import type { Bundle, Bundler } from "@/bundler/bundler.types";
+
 import { BundleConfig, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.adapter";
 import { StandardIntermediateConfigResolver } from "@/config/default.provider";
@@ -14,6 +13,8 @@ import { PackageConfigRetriever } from "@/config/package.resolver";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
 import { TypeScriptConfigRetriever } from "@/config/typescript.resolver";
 import { wrap } from "@/util/array";
+import { cac } from "cac";
+import path from "node:path";
 
 // eslint-disable-next-line unicorn/prefer-module
 const WORKER_FILE = path.resolve(__dirname, "../dist/worker.mjs");
@@ -32,7 +33,7 @@ export type F = {
 
 export type FileBundlerFactory = () => Promise<FileBundler>;
 
-export type ResolvedFileBundlerFactory = (bundle: Bundle) => Promise<Bundle>;
+export type ResolvedFileBundlerFactory = (bundle: Bundle) => Bundle;
 
 async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
 	const start = Date.now();
@@ -64,7 +65,7 @@ async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
 	}
 }
 
-async function build(bundler: Bundle): Promise<Bundle> {
+function build(bundler: Bundle): Bundle {
 	return {
 		async build() {
 			const start = Date.now();
@@ -81,7 +82,7 @@ async function build(bundler: Bundle): Promise<Bundle> {
 	};
 }
 
-async function watch(bundler: Bundle): Promise<Bundle> {
+function watch(bundler: Bundle): Bundle {
 	return {
 		async build() {
 			process.stdin.setRawMode(true);
@@ -92,17 +93,23 @@ async function watch(bundler: Bundle): Promise<Bundle> {
 				ignored: "dist",
 			});
 
+			// Promise is handled
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			watcher.on("all", async () => {
 				const start = Date.now();
-				await bundler.build();
-				console.log(`⚡ Done rebuilding in ${Date.now() - start}ms`);
+				try {
+					await bundler.build();
+					console.log(`⚡ Done rebuilding in ${Date.now() - start}ms`);
+				} catch (error) {
+					console.error(`⚡ Failed rebuilding in ${Date.now() - start}ms`, error);
+				}
 			});
 
 			await new Promise<void>((resolve) => {
 				process.stdin.setRawMode(true);
 				process.stdin.setEncoding("utf8");
 
-				process.stdin.on("data", async (input: string) => {
+				process.stdin.on("data", (input: string) => {
 					// ctrl+c or ctrl+d
 					if (input === "\u0003" || input === "\u0004") {
 						resolve();
@@ -132,6 +139,8 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 	try {
 		// Bundle beforehand to eliminate repeated lookups for build
 		const configs = await config(process.cwd(), {
+			// Satisfies interface
+			// eslint-disable-next-line @typescript-eslint/require-await
 			async bundle(entry, options) {
 				return {
 					async build() {
@@ -146,7 +155,7 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 		});
 
 		// Do the actual bundling
-		const bundle = await executor({
+		const bundle = executor({
 			async build() {
 				await Promise.all(
 					configs.map(async ({ entry, options }) => {

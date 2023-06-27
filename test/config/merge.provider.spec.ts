@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
 import type { ConfigResolver, IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
+
 import { MergeIntermediateConfigResolver } from "@/config/merge.provider";
+import { describe, expect, it } from "vitest";
 
 function stub(config: IntermediateConfig): IntermediateConfigResolver {
 	return {

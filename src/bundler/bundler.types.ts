@@ -1,5 +1,5 @@
-import type { Platform } from "esbuild";
 import type { Config, Format } from "@/config/config.types";
+import type { Platform } from "esbuild";
 
 export type BundleOptions = {
 	target?: string;

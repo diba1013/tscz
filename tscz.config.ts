@@ -1,5 +1,6 @@
-import { version } from "./package.json";
 import { defineConfig } from "@diba1013/tscz";
+
+import { version } from "./package.json";
 
 const NAME = "tscz";
 const SOURCE = "src";

@@ -1,8 +1,9 @@
-import path from "node:path";
-import pc from "picocolors";
 import type { BundleEntry, BundleOptions } from "@/bundler/bundler.types";
+
 import { EsbuildBundler } from "@/bundler/esbuild.bundler";
 import { RollupBundler } from "@/bundler/rollup.bundler";
+import path from "node:path";
+import pc from "picocolors";
 
 export type BundleConfiguration = {
 	parent?: string;

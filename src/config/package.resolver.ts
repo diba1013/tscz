@@ -1,7 +1,9 @@
+import type { Module } from "@/config/config.types";
+
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+
 import type { Retriever } from "@/global.types";
-import type { Module } from "@/config/config.types";
 
 const PACKAGE_FILE = "package.json";
 
@@ -18,6 +20,8 @@ export class PackageConfigRetriever implements Retriever<PackageConfig> {
 		const input = path.resolve(root, PACKAGE_FILE);
 		const file = await readFile(input);
 		const content = file.toString();
+		// Using any here is fine
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return JSON.parse(content);
 	}
 }

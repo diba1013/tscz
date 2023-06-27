@@ -7,14 +7,15 @@ export function wrap<T>(array: MaybeArray<T>): T[] {
 	return [array];
 }
 
-export function merge<T>(items: MaybeArray<T>): T {
+export function merge<T extends object>(items: MaybeArray<T>): T {
 	if (Array.isArray(items)) {
-		return Object.assign({}, ...items);
+		// Casting necessary to fix typescript complaints for spreading
+		return Object.assign({}, ...items) as T;
 	}
 	return items;
 }
 
-export function combine<T>(config: T, items: MaybeArray<T>): MaybeArray<T> {
+export function combine<T extends object>(config: T, items: MaybeArray<T>): MaybeArray<T> {
 	if (Array.isArray(items)) {
 		if (items.length > 0) {
 			return items.map((item) => {

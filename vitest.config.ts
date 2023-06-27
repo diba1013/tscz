@@ -1,6 +1,4 @@
-// eslint-disable-next-line spaced-comment
-/// <reference types="vitest" />
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	resolve: {
@@ -13,6 +11,7 @@ export default defineConfig({
 		restoreMocks: true,
 		coverage: {
 			enabled: true,
+			provider: "v8",
 			all: true,
 			include: ["src/**/*.ts"],
 			exclude: ["src/**/*.types.ts"],

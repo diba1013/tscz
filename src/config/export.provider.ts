@@ -1,6 +1,8 @@
 import type { Config, ExportConfig, IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
-import type { Retriever } from "@/global.types";
+
 import { combine } from "@/util/array";
+
+import type { Retriever } from "@/global.types";
 
 export type ExportIntermediateConfigProviderOptions = {
 	bundle: Retriever<ExportConfig>;

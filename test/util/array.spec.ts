@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { combine, merge, wrap } from "@/util/array";
+import { describe, expect, it } from "vitest";
 
 describe("wrap", () => {
 	it("should not touch empty array", () => {

@@ -1,6 +1,7 @@
-import { BuildOptions, context, Plugin } from "esbuild";
-import alias from "esbuild-plugin-alias";
 import type { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
+
+import { BuildOptions, Plugin, context } from "esbuild";
+import alias from "esbuild-plugin-alias";
 
 export class EsbuildBundler implements Bundler {
 	async bundle(entry: BundleEntry, options: BundleOptions = {}): Promise<Bundle> {

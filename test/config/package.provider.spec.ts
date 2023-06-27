@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
 import { PackageIntermediateConfigResolver } from "@/config/package.provider";
 import { PackageConfig } from "@/config/package.resolver";
 import { wrap } from "@/util/array";
+import { describe, expect, it } from "vitest";
 
 describe("PackageIntermediateConfigRetriever", () => {
 	it("should resolve versions and externals", async () => {

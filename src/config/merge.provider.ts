@@ -1,4 +1,5 @@
 import type { Config, ConfigResolver, IntermediateConfigResolver } from "@/config/config.types";
+
 import { merge } from "@/util/array";
 
 export class MergeIntermediateConfigResolver implements ConfigResolver {

@@ -1,7 +1,8 @@
 import type { RollupBuild } from "rollup";
+
+import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";
-import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
 
 // Need a constant here, since typescript ScriptTarget does not work with esm
 const ES_NEXT = 99;

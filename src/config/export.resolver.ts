@@ -1,11 +1,17 @@
-import path from "node:path";
-import { unlink } from "node:fs/promises";
 import type { ExportConfig } from "@/config/config.types";
-import type { Retriever } from "@/global.types";
+
 import { Bundler } from "@/bundler/bundler.types";
+import { unlink } from "node:fs/promises";
+import path from "node:path";
+
+import type { Retriever } from "@/global.types";
 
 const CONFIG_FILE_TS = "tscz.config.ts";
 const CONFIG_FILE_JS = "tscz.config.js";
+
+type BundledExportConfig = {
+	default: ExportConfig & Partial<BundledExportConfig>;
+};
 
 export class ExportConfigRetriever implements Retriever<ExportConfig> {
 	private readonly $bundler: Bundler;
@@ -41,7 +47,11 @@ export class ExportConfigRetriever implements Retriever<ExportConfig> {
 	}
 
 	private async require(output: string): Promise<ExportConfig> {
-		const { default: result } = await import(output);
-		return result.default ?? result;
+		// Using import should be fine, since this is compiled code
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const { default: bundle }: BundledExportConfig = await import(output);
+		// Re-access default export in case of bundled output
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return bundle.default ?? bundle;
 	}
 }

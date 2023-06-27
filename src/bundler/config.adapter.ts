@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { BundleConfig, BundleConfigRetriever, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
 import type {
 	Config,
@@ -9,7 +8,9 @@ import type {
 	FormatObject,
 	Module,
 } from "@/config/config.types";
+
 import { wrap } from "@/util/array";
+import path from "node:path";
 
 const EXTENSIONS: Record<Module, Record<Format, string>> = {
 	commonjs: {
@@ -25,6 +26,8 @@ const EXTENSIONS: Record<Module, Record<Format, string>> = {
 };
 
 export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
+	// Satisfies interface
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async map(config: Config): Promise<BundleConfig[]> {
 		const options: BundleOptions = {
 			target: config.target,
