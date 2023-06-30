@@ -31,6 +31,6 @@ export default defineConfig({
 	env: {
 		NAME: NAME,
 		VERSION: version,
-		BUNDLED: "DONE",
+		BUNDLED: "production",
 	},
 });

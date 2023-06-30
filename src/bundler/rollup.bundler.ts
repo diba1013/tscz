@@ -19,6 +19,11 @@ export class RollupBundler implements Bundler {
 					format: "esm",
 					file: entry.output,
 				});
+				return [
+					{
+						file: entry.output,
+					},
+				];
 			},
 
 			async dispose() {

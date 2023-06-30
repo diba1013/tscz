@@ -10,6 +10,11 @@ export class EsbuildBundler implements Bundler {
 		return {
 			async build() {
 				await bundler.rebuild();
+				return [
+					{
+						file: entry.output,
+					},
+				];
 			},
 
 			async dispose() {
@@ -18,26 +23,29 @@ export class EsbuildBundler implements Bundler {
 		};
 	}
 
-	config(entry: BundleEntry, options: BundleOptions): BuildOptions {
-		if (entry.format === "dts") {
+	config(
+		{ format, inputs, output, bundle = true, minify = format !== "esm" }: BundleEntry,
+		{ platform = "node", target = "esnext", resolve = {}, externals = [], env: environment = {} }: BundleOptions,
+	): BuildOptions {
+		if (format === "dts") {
 			throw new Error("Cannot bundle dts with esbuild");
 		}
 
 		const plugins: Plugin[] = [];
-		if (options.resolve?.alias !== undefined) {
-			plugins.push(this.alias(options.resolve.alias));
+		if (resolve.alias !== undefined) {
+			plugins.push(this.alias(resolve.alias));
 		}
 
 		return {
-			format: entry.format,
-			platform: options.platform ?? "node",
-			target: options.target ?? "esnext",
-			bundle: entry.bundle ?? true,
-			entryPoints: entry.inputs,
-			outfile: entry.output,
-			external: options.externals ?? [],
-			minify: entry.minify ?? entry.format !== "esm",
-			define: this.replace(options.env ?? {}),
+			format,
+			platform,
+			target,
+			bundle,
+			entryPoints: inputs,
+			outfile: output,
+			external: bundle ? externals : [],
+			minify,
+			define: this.replace(environment),
 			plugins,
 		};
 	}

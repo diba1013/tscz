@@ -1,4 +1,4 @@
-import type { BundleEntry, BundleOptions } from "@/bundler/bundler.types";
+import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
 
 import { EsbuildBundler } from "@/bundler/esbuild.bundler";
 import { RollupBundler } from "@/bundler/rollup.bundler";
@@ -11,13 +11,17 @@ export type BundleConfiguration = {
 	options?: BundleOptions;
 };
 
-export async function bundle({ parent = process.cwd(), entry, options = {} }: BundleConfiguration): Promise<void> {
+export async function bundle({
+	parent = process.cwd(),
+	entry,
+	options = {},
+}: BundleConfiguration): Promise<BundleOutput[]> {
 	const start = Date.now();
 	try {
 		const bundler = entry.format === "dts" ? new RollupBundler() : new EsbuildBundler();
 		const bundle = await bundler.bundle(entry, options);
 		try {
-			await bundle.build();
+			return await bundle.build();
 		} finally {
 			await bundle.dispose();
 		}

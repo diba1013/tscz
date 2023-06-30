@@ -114,6 +114,8 @@ export type ConfigEntry = {
 	 * The output configuration.
 	 */
 	output: ConfigEntryOutput | ConfigEntryOutputList;
+	bundle?: boolean;
+	minify?: boolean;
 };
 
 export type ConfigEntryOutput = Format | FormatObject;

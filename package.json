@@ -23,17 +23,16 @@
 		"dist"
 	],
 	"exports": {
-		"import": "./dist/index.mjs",
-		"require": "./dist/index.js"
+		"import": "./dist/index.js",
+		"require": "./dist/index.cjs"
 	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"bin": "./dist/cli.js",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"bin": "./dist/cli.cjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"prepare": "husky install",
-		"build": "tsx ./src/cli.ts",
-		"build:watch": "pnpm run -s build -- --watch",
+		"build": "pnpm exec tsx src/cli.build.ts && pnpm exec tscz && pnpm exec tscz",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"lint": "eslint .",

@@ -1,28 +1,27 @@
 #!/usr/bin/env node
 
+import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
 import type { Bundle, Bundler } from "@/bundler/bundler.types";
 
-import { BundleConfig, BundleEntry, BundleOptions } from "@/bundler/bundler.types";
-import { ConvertingBundleConfigRetriever } from "@/bundler/config.adapter";
+import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
 import { StandardIntermediateConfigResolver } from "@/config/default.provider";
-import { ExportIntermediateConfigProvider } from "@/config/export.provider";
-import { ExportConfigRetriever } from "@/config/export.resolver";
+import { ExportConfigRetriever } from "@/config/export.provider";
 import { MergeIntermediateConfigResolver } from "@/config/merge.provider";
 import { PackageIntermediateConfigResolver } from "@/config/package.provider";
 import { PackageConfigRetriever } from "@/config/package.resolver";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
 import { TypeScriptConfigRetriever } from "@/config/typescript.resolver";
-import { wrap } from "@/util/array";
 import { cac } from "cac";
 import path from "node:path";
+import pc from "picocolors";
 
 // eslint-disable-next-line unicorn/prefer-module
-const WORKER_FILE = path.resolve(__dirname, "../dist/worker.mjs");
+const WORKER_FILE = path.resolve(__dirname, "../dist/worker.js");
 
 const VERSION = process.env.VERSION ?? "unknown";
 
 export type FileBundler = {
-	build: (entry: BundleEntry, options?: BundleOptions) => Promise<void>;
+	build: (entry: BundleEntry, options?: BundleOptions) => Promise<BundleOutput[]>;
 
 	dispose?: () => Promise<void>;
 };
@@ -35,12 +34,10 @@ export type FileBundlerFactory = () => Promise<FileBundler>;
 
 export type ResolvedFileBundlerFactory = (bundle: Bundle) => Bundle;
 
-async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
-	const start = Date.now();
-	try {
-		const adapter = new ConvertingBundleConfigRetriever();
-		const resolver = new ExportIntermediateConfigProvider({
-			bundle: new ExportConfigRetriever(bundler),
+async function config(root: string, bundler: Bundler): Promise<Bundle> {
+	const adapter = new ConvertingBundleConfigRetriever({
+		config: new ExportConfigRetriever({
+			bundler,
 			config: new MergeIntermediateConfigResolver([
 				new StandardIntermediateConfigResolver("index"),
 				new PackageIntermediateConfigResolver({
@@ -50,36 +47,10 @@ async function config(root: string, bundler: Bundler): Promise<BundleConfig[]> {
 					config: new TypeScriptConfigRetriever(),
 				}),
 			]),
-		});
-
-		const configs = wrap(await resolver.get(root));
-
-		const entries: BundleConfig[] = [];
-		for (const config of configs) {
-			const unwrapped = await adapter.map(config);
-			entries.push(...unwrapped);
-		}
-		return entries;
-	} finally {
-		console.info(`⭐ Warm up in ${Date.now() - start}ms`);
-	}
-}
-
-function build(bundler: Bundle): Bundle {
-	return {
-		async build() {
-			const start = Date.now();
-			try {
-				await bundler.build();
-			} finally {
-				console.info(`⚡ Done bundling in ${Date.now() - start}ms`);
-			}
-		},
-
-		async dispose() {
-			await bundler.dispose();
-		},
-	};
+		}),
+		bundler,
+	});
+	return await adapter.get(root);
 }
 
 function watch(bundler: Bundle): Bundle {
@@ -99,7 +70,7 @@ function watch(bundler: Bundle): Bundle {
 				const start = Date.now();
 				try {
 					await bundler.build();
-					console.log(`⚡ Done rebuilding in ${Date.now() - start}ms`);
+					console.info(`⚡ Done rebuilding in ${Date.now() - start}ms`);
 				} catch (error) {
 					console.error(`⚡ Failed rebuilding in ${Date.now() - start}ms`, error);
 				}
@@ -120,6 +91,8 @@ function watch(bundler: Bundle): Bundle {
 			});
 
 			await watcher.close();
+
+			return [];
 		},
 
 		async dispose() {
@@ -133,8 +106,10 @@ function watch(bundler: Bundle): Bundle {
 	};
 }
 
-async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundlerFactory): Promise<void> {
-	const start = Date.now();
+async function execute(
+	factory: FileBundlerFactory,
+	executor: ResolvedFileBundlerFactory = (bundle) => bundle,
+): Promise<void> {
 	const bundler = await factory();
 	try {
 		// Bundle beforehand to eliminate repeated lookups for build
@@ -144,7 +119,7 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 			async bundle(entry, options) {
 				return {
 					async build() {
-						await bundler.build(entry, options);
+						return await bundler.build(entry, options);
 					},
 
 					async dispose() {
@@ -155,13 +130,9 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 		});
 
 		// Do the actual bundling
-		const bundle = executor({
+		const bundle = executor?.({
 			async build() {
-				await Promise.all(
-					configs.map(async ({ entry, options }) => {
-						await bundler.build(entry, options);
-					}),
-				);
+				return await configs.build();
 			},
 
 			async dispose() {
@@ -177,14 +148,12 @@ async function execute(factory: FileBundlerFactory, executor: ResolvedFileBundle
 
 		// Ensure resources are disposed
 		await bundler.dispose?.();
-		console.info(`Done with stuff ${Date.now() - start}ms`);
 		// Ensure process exits in any case
 		process.exit(0);
 	} catch (error) {
 		console.error("Could not bundle", error);
 		// Ensure resources are disposed
 		await bundler.dispose?.();
-		console.info(`Done with stuff ${Date.now() - start}ms`);
 		// Ensure process exits in any case
 		process.exit(1);
 	}
@@ -198,7 +167,7 @@ function run(factory: FileBundlerFactory) {
 			default: process.cwd(),
 		})
 		.action(async () => {
-			await execute(factory, build);
+			await execute(factory);
 		});
 
 	cli.command("watch", "Watch for file changes and rebuild application") //
@@ -217,7 +186,9 @@ function run(factory: FileBundlerFactory) {
 }
 
 run(async (): Promise<FileBundler> => {
-	if (process.env.BUNDLED === "DONE") {
+	console.info(`${pc.bgBlue(" TSC ")} Bundling with ${pc.green(process.env.BUNDLED || "development")} mode.\n`);
+
+	if (process.env.BUNDLED === "production") {
 		const { Tinypool } = await import("tinypool");
 
 		const pool = new Tinypool({
@@ -226,7 +197,9 @@ run(async (): Promise<FileBundler> => {
 
 		return {
 			build: async (entry: BundleEntry, options?: BundleOptions) => {
-				await pool.run({
+				// This is ensured by the worker
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				return await pool.run({
 					entry,
 					options,
 				});
@@ -241,7 +214,7 @@ run(async (): Promise<FileBundler> => {
 
 		return {
 			build: async (entry: BundleEntry, options?: BundleOptions) => {
-				await bundle({
+				return await bundle({
 					entry,
 					options,
 				});

@@ -3,19 +3,25 @@ import type { IntermediateConfig, IntermediateConfigResolver } from "@/config/co
 import type { MaybePromise } from "@/global.types";
 
 export class StandardIntermediateConfigResolver implements IntermediateConfigResolver {
-	constructor(private readonly file: string) {}
+	private readonly $files: string[];
+
+	constructor(...files: string[]) {
+		this.$files = files;
+	}
 
 	public get(): MaybePromise<IntermediateConfig> {
-		return {
-			output: "dist",
-			target: "esnext",
-			entries: [
-				{
-					name: this.file,
-					input: `src/${this.file}.ts`,
-					output: ["cjs", "esm", "dts"],
-				},
-			],
-		};
+		return this.$files.map((file) => {
+			return {
+				output: "dist",
+				target: "esnext",
+				entries: [
+					{
+						name: file,
+						input: `src/${file}.ts`,
+						output: ["cjs", "esm", "dts"],
+					},
+				],
+			};
+		});
 	}
 }

@@ -1,5 +1,7 @@
-import type { Config, Format } from "@/config/config.types";
+import type { Format } from "@/config/config.types";
 import type { Platform } from "esbuild";
+
+import type { MaybePromise, Retriever } from "@/global.types";
 
 export type BundleOptions = {
 	target?: string;
@@ -24,18 +26,20 @@ export type BundleConfig = {
 	options?: BundleOptions;
 };
 
-export interface BundleConfigRetriever {
-	map(config: Config): Promise<BundleConfig[]>;
-}
+export type BundleConfigRetriever = Retriever<Bundle>;
+
+export type BundleOutput = {
+	file: string;
+};
 
 export interface Bundle {
-	build(): Promise<void>;
+	build(): MaybePromise<BundleOutput[]>;
 
-	dispose(): Promise<void>;
+	dispose(): MaybePromise<void>;
 }
 
 export interface Bundler {
-	bundle(entry: BundleEntry, options?: BundleOptions): Promise<Bundle>;
+	bundle(entry: BundleEntry, options?: BundleOptions): MaybePromise<Bundle>;
 }
 
-export type BundlerFunction = (entry: BundleEntry, options?: BundleOptions) => Promise<Bundle>;
+export type BundlerFunction = (entry: BundleEntry, options?: BundleOptions) => MaybePromise<Bundle>;
