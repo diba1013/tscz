@@ -136,7 +136,7 @@ async function execute(
 			},
 
 			async dispose() {
-				await bundler.dispose?.();
+				await configs.dispose?.();
 			},
 		});
 

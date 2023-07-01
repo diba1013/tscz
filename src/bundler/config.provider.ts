@@ -52,37 +52,52 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 
 	async get(root: string): Promise<Bundle> {
 		const start = Date.now();
-		const configs = wrap(await this.$config.get(root));
+		const configs = await this.$config.get(root);
+		// Remap configs to bundles
 		const entries: BundleConfig[] = [];
-		for (const config of configs) {
+		for (const config of wrap(configs)) {
 			const unwrapped = this.map(config);
 			entries.push(...unwrapped);
 		}
+		// compile bundles
+		const bundles = await Promise.all(
+			entries.map(async ({ entry, options }) => {
+				return await this.$bundler.bundle(entry, options);
+			}),
+		);
 
-		console.info(`${pc.blue("[cli]")} Warm up in ${Date.now() - start}ms`);
+		console.info(`${pc.blue("[cli]")} ${pc.dim(`Warm up in ${Date.now() - start}ms`)}`);
 		return {
-			build: async () => {
+			async build() {
 				const start = Date.now();
 				try {
-					console.info(`${pc.blue("[cli]")} Bundling ${entries.length} configurations...`);
-					const bundles = await Promise.all(
-						entries.map(async ({ entry, options }) => {
-							const bundle = await this.$bundler.bundle(entry, options);
-							try {
-								return await bundle.build();
-							} finally {
-								await bundle.dispose();
-							}
+					console.info(`${pc.blue("[cli]")} Bundling ${bundles.length} configurations...`);
+					const outputs = await Promise.all(
+						bundles.map(async (bundle) => {
+							return bundle.build();
 						}),
 					);
-					return bundles.flat();
+					return outputs.flat();
 				} finally {
-					console.info(`${pc.blue("[cli]")} Done bundling in ${Date.now() - start}ms\n`);
+					const end = Date.now() - start;
+					console.info(`${pc.blue("[cli]")} Done bundling in ${end}ms`);
 				}
 			},
 
-			dispose: () => {
-				// Ignore
+			async dispose() {
+				const start = Date.now();
+				try {
+					await Promise.all(
+						bundles.map((bundle) => {
+							return bundle.dispose();
+						}),
+					);
+				} finally {
+					const end = Date.now() - start;
+					console.info(
+						`${pc.blue("[cli]")} ${pc.dim(`Disposed ${bundles.length} configurations in ${end}ms`)}\n`,
+					);
+				}
 			},
 		};
 	}
