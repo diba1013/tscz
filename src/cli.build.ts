@@ -1,10 +1,8 @@
 import type { BundleConfigRetriever } from "@/bundler/bundler.types";
-
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
+import { bundle } from "@/worker";
 import path from "node:path";
 import pc from "picocolors";
-
-import { bundle } from "@/worker";
 
 async function run(root = process.cwd()) {
 	const retriever: BundleConfigRetriever = new ConvertingBundleConfigRetriever({

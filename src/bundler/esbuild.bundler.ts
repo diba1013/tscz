@@ -1,5 +1,4 @@
 import type { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
-
 import { BuildOptions, Plugin, context } from "esbuild";
 import alias from "esbuild-plugin-alias";
 

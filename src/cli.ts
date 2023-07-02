@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
 import type { Bundle, Bundler } from "@/bundler/bundler.types";
-
+import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
 import { StandardIntermediateConfigResolver } from "@/config/default.provider";
 import { ExportConfigRetriever } from "@/config/export.provider";
@@ -11,8 +10,8 @@ import { PackageIntermediateConfigResolver } from "@/config/package.provider";
 import { PackageConfigRetriever } from "@/config/package.resolver";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
 import { TypeScriptConfigRetriever } from "@/config/typescript.resolver";
-import { cac } from "cac";
 import path from "node:path";
+import { cac } from "cac";
 import pc from "picocolors";
 
 // eslint-disable-next-line unicorn/prefer-module

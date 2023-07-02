@@ -1,10 +1,8 @@
 import type { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
 import type { TypeScriptConfig } from "@/config/typescript.resolver";
-
+import type { Retriever } from "@/global.types";
 import path from "node:path";
 import { ScriptTarget } from "typescript";
-
-import type { Retriever } from "@/global.types";
 
 type ScriptTargets = Lowercase<keyof typeof ScriptTarget>;
 

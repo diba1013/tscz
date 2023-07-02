@@ -1,6 +1,5 @@
 import type { IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
 import type { PackageConfig } from "@/config/package.resolver";
-
 import type { Retriever } from "@/global.types";
 
 export type PackageIntermediateConfigResolverOptions = {

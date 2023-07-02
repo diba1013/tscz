@@ -1,12 +1,10 @@
 import type { Bundler } from "@/bundler/bundler.types";
 import type { Config, ExportConfig, IntermediateConfig, IntermediateConfigResolver } from "@/config/config.types";
-
+import type { Retriever } from "@/global.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
 import { combine } from "@/util/array";
-import { unlink } from "node:fs/promises";
 import path from "node:path";
-
-import type { Retriever } from "@/global.types";
+import { unlink } from "node:fs/promises";
 
 const CONFIG_FILE_TS = "tscz.config.ts";
 

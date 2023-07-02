@@ -1,5 +1,4 @@
 import type { RollupBuild } from "rollup";
-
 import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";

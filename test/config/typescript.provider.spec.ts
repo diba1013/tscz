@@ -1,10 +1,9 @@
+import type { TypeScriptConfig } from "@/config/typescript.resolver";
+import type { Retriever } from "@/global.types";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
-import { TypeScriptConfig } from "@/config/typescript.resolver";
 import path from "node:path";
 import { CompilerOptions, ScriptTarget } from "typescript";
 import { describe, expect, it } from "vitest";
-
-import { Retriever } from "@/global.types";
 
 function stub(compilerOptions: CompilerOptions): Retriever<TypeScriptConfig> {
 	return {

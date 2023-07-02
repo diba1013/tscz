@@ -16,12 +16,10 @@ import type {
 	IntermediateConfig,
 	Module,
 } from "@/config/config.types";
-
+import { Retriever } from "@/global.types";
 import { wrap } from "@/util/array";
 import path from "node:path";
 import pc from "picocolors";
-
-import { Retriever } from "@/global.types";
 
 const EXTENSIONS: Record<Module, Record<Format, string>> = {
 	commonjs: {

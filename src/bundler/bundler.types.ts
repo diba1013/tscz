@@ -1,7 +1,6 @@
 import type { Format } from "@/config/config.types";
-import type { Platform } from "esbuild";
-
 import type { MaybePromise, Retriever } from "@/global.types";
+import type { Platform } from "esbuild";
 
 export type BundleOptions = {
 	target?: string;

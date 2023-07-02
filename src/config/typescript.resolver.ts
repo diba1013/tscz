@@ -1,8 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { CompilerOptions, parseConfigFileTextToJson, parseJsonConfigFileContent, sys } from "typescript";
-
 import type { Retriever } from "@/global.types";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { CompilerOptions, parseConfigFileTextToJson, parseJsonConfigFileContent, sys } from "typescript";
 
 const TYPESCRIPT_FILE = "tsconfig.json";
 
