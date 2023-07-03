@@ -1,10 +1,10 @@
-import type { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
+import type { Bundle, BundleEntry, Bundler } from "@/bundler/bundler.types";
 import { BuildOptions, Plugin, context } from "esbuild";
 import alias from "esbuild-plugin-alias";
 
 export class EsbuildBundler implements Bundler {
-	async bundle(entry: BundleEntry, options: BundleOptions = {}): Promise<Bundle> {
-		const config = this.config(entry, options);
+	async bundle(entry: BundleEntry): Promise<Bundle> {
+		const config = this.config(entry);
 		const bundler = await context(config);
 		return {
 			async build() {
@@ -22,10 +22,18 @@ export class EsbuildBundler implements Bundler {
 		};
 	}
 
-	config(
-		{ format, inputs, output, bundle = true, minify = format !== "esm" }: BundleEntry,
-		{ platform = "node", target = "esnext", resolve = {}, externals = [], env: environment = {} }: BundleOptions,
-	): BuildOptions {
+	config({
+		format,
+		inputs,
+		output,
+		bundle = true,
+		minify = format !== "esm",
+		platform = "node",
+		target = "esnext",
+		resolve = {},
+		externals = [],
+		env: environment = {},
+	}: BundleEntry): BuildOptions {
 		if (format === "dts") {
 			throw new Error("Cannot bundle dts with esbuild");
 		}

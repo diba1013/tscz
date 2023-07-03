@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import type { Bundle, Bundler } from "@/bundler/bundler.types";
-import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
+import type { BundleEntry, BundleOutput } from "@/bundler/bundler.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
 import { StandardIntermediateConfigResolver } from "@/config/default.provider";
 import { ExportConfigRetriever } from "@/config/export.provider";
@@ -19,19 +19,15 @@ const WORKER_FILE = path.resolve(__dirname, "../dist/worker.js");
 
 const VERSION = process.env.VERSION ?? "unknown";
 
-export type FileBundler = {
-	build: (entry: BundleEntry, options?: BundleOptions) => Promise<BundleOutput[]>;
+type FileBundler = {
+	bundle: (entry: BundleEntry) => Promise<BundleOutput[]>;
 
 	dispose?: () => Promise<void>;
 };
 
-export type F = {
-	bundle: FileBundler;
-};
+type FileBundlerFactory = () => Promise<FileBundler>;
 
-export type FileBundlerFactory = () => Promise<FileBundler>;
-
-export type ResolvedFileBundlerFactory = (bundle: Bundle) => Bundle;
+type ResolvedFileBundlerFactory = (bundle: Bundle) => Bundle;
 
 async function config(root: string, bundler: Bundler): Promise<Bundle> {
 	const adapter = new ConvertingBundleConfigRetriever({
@@ -105,39 +101,26 @@ function watch(bundler: Bundle): Bundle {
 	};
 }
 
-async function execute(
-	factory: FileBundlerFactory,
-	executor: ResolvedFileBundlerFactory = (bundle) => bundle,
-): Promise<void> {
-	const bundler = await factory();
+async function execute(bundler: FileBundler, executor: ResolvedFileBundlerFactory = (bundle) => bundle): Promise<void> {
 	try {
 		// Bundle beforehand to eliminate repeated lookups for build
-		const configs = await config(process.cwd(), {
-			// Satisfies interface
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async bundle(entry, options) {
-				return {
-					async build() {
-						return await bundler.build(entry, options);
-					},
+		const bundle = executor(
+			await config(process.cwd(), {
+				// Satisfies interface
+				// eslint-disable-next-line @typescript-eslint/require-await
+				async bundle(entry) {
+					return {
+						async build() {
+							return await bundler.bundle(entry);
+						},
 
-					async dispose() {
-						// Do not dispose to ensure bundler available for actual file bundling
-					},
-				};
-			},
-		});
-
-		// Do the actual bundling
-		const bundle = executor?.({
-			async build() {
-				return await configs.build();
-			},
-
-			async dispose() {
-				await configs.dispose?.();
-			},
-		});
+						async dispose() {
+							// Do not dispose to ensure bundler available for actual file bundling
+						},
+					};
+				},
+			}),
+		);
 
 		try {
 			await bundle.build();
@@ -166,7 +149,7 @@ function run(factory: FileBundlerFactory) {
 			default: process.cwd(),
 		})
 		.action(async () => {
-			await execute(factory);
+			await execute(await factory());
 		});
 
 	cli.command("watch", "Watch for file changes and rebuild application") //
@@ -175,7 +158,7 @@ function run(factory: FileBundlerFactory) {
 				return;
 			}
 
-			await execute(factory, watch);
+			await execute(await factory(), watch);
 		});
 
 	cli.help();
@@ -195,12 +178,11 @@ run(async (): Promise<FileBundler> => {
 		});
 
 		return {
-			build: async (entry: BundleEntry, options?: BundleOptions) => {
+			bundle: async (entry: BundleEntry) => {
 				// This is ensured by the worker
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				return await pool.run({
 					entry,
-					options,
 				});
 			},
 
@@ -212,10 +194,9 @@ run(async (): Promise<FileBundler> => {
 		const { bundle } = await import("@/worker");
 
 		return {
-			build: async (entry: BundleEntry, options?: BundleOptions) => {
+			bundle: async (entry: BundleEntry) => {
 				return await bundle({
 					entry,
-					options,
 				});
 			},
 		};

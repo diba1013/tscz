@@ -1,5 +1,5 @@
 import type { RollupBuild } from "rollup";
-import { Bundle, BundleEntry, BundleOptions, Bundler } from "@/bundler/bundler.types";
+import { Bundle, BundleEntry, Bundler } from "@/bundler/bundler.types";
 import { rollup } from "rollup";
 import dts from "rollup-plugin-dts";
 
@@ -7,11 +7,11 @@ import dts from "rollup-plugin-dts";
 const ES_NEXT = 99;
 
 export class RollupBundler implements Bundler {
-	public async bundle(entry: BundleEntry, config: BundleOptions): Promise<Bundle> {
+	public async bundle(entry: BundleEntry): Promise<Bundle> {
 		if (entry.format !== "dts") {
 			throw new Error(`Rollup cannot bundle ${entry.format} files`);
 		}
-		const bundle = await this.create(entry, config);
+		const bundle = await this.create(entry);
 		return {
 			async build() {
 				await bundle.write({
@@ -31,7 +31,7 @@ export class RollupBundler implements Bundler {
 		};
 	}
 
-	private create(entry: BundleEntry, config: BundleOptions): Promise<RollupBuild> {
+	private create(entry: BundleEntry): Promise<RollupBuild> {
 		return rollup({
 			input: entry.inputs,
 			output: {
@@ -43,7 +43,7 @@ export class RollupBundler implements Bundler {
 					compilerOptions: {
 						baseUrl: ".",
 						target: ES_NEXT,
-						paths: this.restore(config.resolve?.alias ?? {}),
+						paths: this.restore(entry.resolve?.alias ?? {}),
 						// Ensure dts generation
 						declaration: true,
 						noEmit: false,
@@ -59,7 +59,7 @@ export class RollupBundler implements Bundler {
 					},
 				}),
 			],
-			external: config.externals,
+			external: entry.externals,
 		});
 	}
 

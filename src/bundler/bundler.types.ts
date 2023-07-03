@@ -2,7 +2,12 @@ import type { Format } from "@/config/config.types";
 import type { MaybePromise, Retriever } from "@/global.types";
 import type { Platform } from "esbuild";
 
-export type BundleOptions = {
+export type BundleEntry = {
+	format: Format;
+	inputs: string[];
+	output: string;
+	bundle?: boolean;
+	minify?: boolean;
 	target?: string;
 	platform?: Platform;
 	resolve?: {
@@ -10,19 +15,6 @@ export type BundleOptions = {
 	};
 	externals?: string[];
 	env?: Record<string, string>;
-};
-
-export type BundleEntry = {
-	format: Format;
-	inputs: string[];
-	output: string;
-	bundle?: boolean;
-	minify?: boolean;
-};
-
-export type BundleConfig = {
-	entry: BundleEntry;
-	options?: BundleOptions;
 };
 
 export type BundleConfigRetriever = Retriever<Bundle>;
@@ -38,7 +30,7 @@ export interface Bundle {
 }
 
 export interface Bundler {
-	bundle(entry: BundleEntry, options?: BundleOptions): MaybePromise<Bundle>;
+	bundle(entry: BundleEntry): MaybePromise<Bundle>;
 }
 
-export type BundlerFunction = (entry: BundleEntry, options?: BundleOptions) => MaybePromise<Bundle>;
+export type BundlerFunction = (entry: BundleEntry) => MaybePromise<Bundle>;

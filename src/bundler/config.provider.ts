@@ -1,14 +1,6 @@
-import type {
-	Bundle,
-	BundleConfig,
-	BundleConfigRetriever,
-	BundleEntry,
-	BundleOptions,
-	Bundler,
-} from "@/bundler/bundler.types";
+import type { Bundle, BundleConfigRetriever, BundleEntry, Bundler } from "@/bundler/bundler.types";
 import type {
 	Config,
-	ConfigEntry,
 	ConfigEntryOutput,
 	ConfigEntryOutputList,
 	Format,
@@ -34,6 +26,46 @@ const EXTENSIONS: Record<Module, Record<Format, string>> = {
 	},
 };
 
+class BundledBundle implements Bundle {
+	private readonly $bundles: Bundle[];
+
+	constructor(bundles: Bundle[]) {
+		this.$bundles = bundles;
+	}
+
+	async build() {
+		const start = Date.now();
+		try {
+			console.info(`${pc.blue("[cli]")} Bundling ${this.$bundles.length} configurations...`);
+			const outputs = await Promise.all(
+				this.$bundles.map(async (bundle) => {
+					return bundle.build();
+				}),
+			);
+			return outputs.flat();
+		} finally {
+			const end = Date.now() - start;
+			console.info(`${pc.blue("[cli]")} Done bundling in ${end}ms`);
+		}
+	}
+
+	async dispose() {
+		const start = Date.now();
+		try {
+			await Promise.all(
+				this.$bundles.map((bundle) => {
+					return bundle.dispose();
+				}),
+			);
+		} finally {
+			const end = Date.now() - start;
+			console.info(
+				`${pc.blue("[cli]")} ${pc.dim(`Disposed ${this.$bundles.length} configurations in ${end}ms`)}\n`,
+			);
+		}
+	}
+}
+
 export type ConvertingBundleConfigRetrieverProvider = {
 	config: Retriever<IntermediateConfig>;
 	bundler: Bundler;
@@ -52,111 +84,62 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 		const start = Date.now();
 		const configs = await this.$config.get(root);
 		// Remap configs to bundles
-		const entries: BundleConfig[] = [];
+		const entries: BundleEntry[] = [];
 		for (const config of wrap(configs)) {
-			const unwrapped = this.map(config);
-			entries.push(...unwrapped);
+			for (const entry of this.toBundleEntries(config)) {
+				entries.push(entry);
+			}
 		}
 		// compile bundles
 		const bundles = await Promise.all(
-			entries.map(async ({ entry, options }) => {
-				return await this.$bundler.bundle(entry, options);
+			entries.map(async (entry) => {
+				return await this.$bundler.bundle(entry);
 			}),
 		);
-
 		console.info(`${pc.blue("[cli]")} ${pc.dim(`Warm up in ${Date.now() - start}ms`)}`);
-		return {
-			async build() {
-				const start = Date.now();
-				try {
-					console.info(`${pc.blue("[cli]")} Bundling ${bundles.length} configurations...`);
-					const outputs = await Promise.all(
-						bundles.map(async (bundle) => {
-							return bundle.build();
-						}),
-					);
-					return outputs.flat();
-				} finally {
-					const end = Date.now() - start;
-					console.info(`${pc.blue("[cli]")} Done bundling in ${end}ms`);
-				}
-			},
-
-			async dispose() {
-				const start = Date.now();
-				try {
-					await Promise.all(
-						bundles.map((bundle) => {
-							return bundle.dispose();
-						}),
-					);
-				} finally {
-					const end = Date.now() - start;
-					console.info(
-						`${pc.blue("[cli]")} ${pc.dim(`Disposed ${bundles.length} configurations in ${end}ms`)}\n`,
-					);
-				}
-			},
-		};
+		return new BundledBundle(bundles);
 	}
 
-	private map(config: Config): BundleConfig[] {
-		const options: BundleOptions = {
-			target: config.target,
-			platform: config.platform,
-			resolve: config.resolve,
-			externals: config.externals,
-			env: config.env,
-		};
-
-		const entries = [...this.toBundleEntries(config)];
-		return entries.map((entry) => {
-			return {
-				entry,
-				options,
-			};
-		});
-	}
-
-	private *toBundleEntries(config: Config): Generator<BundleEntry> {
-		for (const entry of config.entries ?? []) {
-			for (const bundle of this.toBundleEntry(entry, config)) {
-				yield bundle;
+	private *toBundleEntries({
+		type,
+		name: global,
+		target,
+		output: bases = "dist",
+		platform,
+		resolve,
+		externals,
+		env,
+		entries = [],
+	}: Config): Generator<BundleEntry> {
+		for (const { name, input, output, bundle, minify } of entries) {
+			for (const {
+				format,
+				file = `${name ?? global ?? "index"}.${this.extension(format, type)}`,
+			} of this.toFormatObjects(output)) {
+				yield {
+					format,
+					inputs: wrap(input),
+					bundle,
+					minify,
+					output: path.resolve(bases, file),
+					target,
+					platform,
+					resolve,
+					externals,
+					env,
+				};
 			}
-		}
-	}
-
-	private *toBundleEntry(
-		{ name, input, output, bundle, minify }: ConfigEntry,
-		config: Config,
-	): Generator<BundleEntry> {
-		for (const entry of this.toFormatObjects(output)) {
-			const base = `${name ?? config.name ?? "index"}.${this.extension(entry.format, config.type)}`;
-			const file = entry.file ?? base;
-
-			yield {
-				format: entry.format,
-				inputs: wrap(input),
-				bundle,
-				minify,
-				output: path.resolve(config.output ?? "dist", file),
-			};
 		}
 	}
 
 	private *toFormatObjects(entries: ConfigEntryOutput | ConfigEntryOutputList): Generator<FormatObject> {
 		for (const entry of wrap(entries)) {
-			yield this.toFormatObject(entry);
+			yield typeof entry === "string"
+				? {
+						format: entry,
+				  }
+				: entry;
 		}
-	}
-
-	private toFormatObject(output: ConfigEntryOutput): FormatObject {
-		if (typeof output === "string") {
-			return {
-				format: output,
-			};
-		}
-		return output;
 	}
 
 	private extension(format: Format, type: Module = "commonjs"): string {

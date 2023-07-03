@@ -70,7 +70,7 @@ export class ExportConfigRetriever implements IntermediateConfigResolver {
 			bundler: this.$bundler,
 		});
 
-		const bundle = await retriever.get(root);
+		const { bundle } = await retriever.get(root);
 		try {
 			const [output] = await bundle.build();
 			return output.file;

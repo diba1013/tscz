@@ -38,11 +38,11 @@ devDependencies:
     specifier: ^17.6.6
     version: 17.6.6
   '@diba1013/eslint-config':
-    specifier: ^0.6.3
-    version: 0.6.3(eslint@8.44.0)(prettier@2.8.8)(typescript@5.1.3)
+    specifier: ^0.6.4
+    version: 0.6.4(eslint@8.44.0)(prettier@2.8.8)(typescript@5.1.3)
   '@diba1013/prettier-config':
-    specifier: ^0.6.3
-    version: 0.6.3(prettier@2.8.8)
+    specifier: ^0.6.4
+    version: 0.6.4(prettier@2.8.8)
   '@diba1013/tscz':
     specifier: link:.
     version: 'link:'
@@ -292,13 +292,13 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
-  /@diba1013/eslint-config@0.6.3(eslint@8.44.0)(prettier@2.8.8)(typescript@5.1.3):
-    resolution: {integrity: sha512-Z19gZgs9IO17ealMbPBAjcmSecMQAnoYLx7lwGY2rlhJ545VIQ8iicbsoJmS1SpW7ntljLyyz3/pnlpPjdfMjQ==, tarball: https://npm.pkg.github.com/download/@diba1013/eslint-config/0.6.3/806f6a212e63255abaad163552267b78fb67cd0e}
+  /@diba1013/eslint-config@0.6.4(eslint@8.44.0)(prettier@2.8.8)(typescript@5.1.3):
+    resolution: {integrity: sha512-rmdHnLcNm0R5KV0Xp2enSTWHGTVNM8vCtsH3aMh0aYkSWUseEumPW8iSZAMWx9eU6d3ppyWwF/bCJWRR6/2FMg==, tarball: https://npm.pkg.github.com/download/@diba1013/eslint-config/0.6.4/f391a478e6a6f6c77ce0e2639a1658f64fb012c3}
     peerDependencies:
       eslint: 8.x
       prettier: 2.x
     dependencies:
-      '@eslint/js': 8.43.0
+      '@eslint/js': 8.44.0
       '@typescript-eslint/eslint-plugin': 5.60.1(@typescript-eslint/parser@5.60.1)(eslint@8.44.0)(typescript@5.1.3)
       '@typescript-eslint/parser': 5.60.1(eslint@8.44.0)(typescript@5.1.3)
       eslint: 8.44.0
@@ -311,7 +311,7 @@ packages:
       eslint-plugin-unicorn: 47.0.0(eslint@8.44.0)
       eslint-plugin-vue: 9.15.1(eslint@8.44.0)
       eslint-plugin-yml: 1.8.0(eslint@8.44.0)
-      espree: 9.5.2
+      espree: 9.6.0
       globals: 13.20.0
       jsonc-eslint-parser: 2.3.0
       prettier: 2.8.8
@@ -322,8 +322,8 @@ packages:
       - typescript
     dev: true
 
-  /@diba1013/prettier-config@0.6.3(prettier@2.8.8):
-    resolution: {integrity: sha512-ALBfQfXZNm2kRMe94Uq+7gtdAgwlbZ2+Cuf/HH2MIhpE9/sC+55vUZRawhK/Ao4wsJdej5OY9BpZtvMwMvQ8Og==, tarball: https://npm.pkg.github.com/download/@diba1013/prettier-config/0.6.3/a39c8a763384fae6b9197f658afe0bddd8a73951}
+  /@diba1013/prettier-config@0.6.4(prettier@2.8.8):
+    resolution: {integrity: sha512-g3C4PuiCMayoVbH1idKt0DIRn2AJzkv1LF24PwmyQA+OSRptWyoWvqncwMMJyWr3lEMAEuhYhOVCJCDlKTySuw==, tarball: https://npm.pkg.github.com/download/@diba1013/prettier-config/0.6.4/e73a1135fdc76689512a20f81cd6a8a1db66d88a}
     peerDependencies:
       prettier: 2.x
     dependencies:
@@ -812,11 +812,6 @@ packages:
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /@eslint/js@8.43.0:
-    resolution: {integrity: sha512-s2UHCoiXfxMvmfzqoN+vrQ84ahUSYde9qNO1MdxmoEhyHWsfmwOpFlwYV+ePJEVc7gFnATGUi376WowX1N7tFg==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
   /@eslint/js@8.44.0:
@@ -2171,15 +2166,6 @@ packages:
       text-table: 0.2.0
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /espree@9.5.2:
-    resolution: {integrity: sha512-7OASN1Wma5fum5SrNhFMAMJxOUAbhyfQ8dQ//PJaJbNw0URTPWqIghHWt1MmAANKhHZIYOHruW4Kw4ruUWOdGw==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    dependencies:
-      acorn: 8.9.0
-      acorn-jsx: 5.3.2(acorn@8.9.0)
-      eslint-visitor-keys: 3.4.1
     dev: true
 
   /espree@9.6.0:

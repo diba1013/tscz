@@ -40,10 +40,10 @@ async function run(root = process.cwd()) {
 			},
 		},
 		bundler: {
-			bundle(entry, options) {
+			bundle(entry) {
 				return {
 					async build() {
-						return await bundle({ parent: root, entry, options });
+						return await bundle({ parent: root, entry });
 					},
 
 					dispose() {

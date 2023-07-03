@@ -1,4 +1,4 @@
-import type { BundleEntry, BundleOptions, BundleOutput } from "@/bundler/bundler.types";
+import type { BundleEntry, BundleOutput } from "@/bundler/bundler.types";
 import { EsbuildBundler } from "@/bundler/esbuild.bundler";
 import { RollupBundler } from "@/bundler/rollup.bundler";
 import path from "node:path";
@@ -7,18 +7,13 @@ import pc from "picocolors";
 export type BundleConfiguration = {
 	parent?: string;
 	entry: BundleEntry;
-	options?: BundleOptions;
 };
 
-export async function bundle({
-	parent = process.cwd(),
-	entry,
-	options = {},
-}: BundleConfiguration): Promise<BundleOutput[]> {
+export async function bundle({ parent = process.cwd(), entry }: BundleConfiguration): Promise<BundleOutput[]> {
 	const start = Date.now();
 	try {
 		const bundler = entry.format === "dts" ? new RollupBundler() : new EsbuildBundler();
-		const bundle = await bundler.bundle(entry, options);
+		const bundle = await bundler.bundle(entry);
 		try {
 			return await bundle.build();
 		} finally {
