@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import type { Bundle, Bundler } from "@/bundler/bundler.types";
 import type { BundleEntry, BundleOutput } from "@/bundler/bundler.types";
+import type { Bundle, BundleConfig, Bundler } from "@/bundler/bundler.types";
 import { ConvertingBundleConfigRetriever } from "@/bundler/config.provider";
 import { StandardIntermediateConfigResolver } from "@/config/default.provider";
 import { ExportConfigRetriever } from "@/config/export.provider";
@@ -10,6 +10,7 @@ import { PackageIntermediateConfigResolver } from "@/config/package.provider";
 import { PackageConfigRetriever } from "@/config/package.resolver";
 import { TypescriptIntermediateConfigResolver } from "@/config/typescript.provider";
 import { TypeScriptConfigRetriever } from "@/config/typescript.resolver";
+import { debounce } from "@/util/debounce";
 import path from "node:path";
 import { cac } from "cac";
 import pc from "picocolors";
@@ -27,9 +28,9 @@ type FileBundler = {
 
 type FileBundlerFactory = () => Promise<FileBundler>;
 
-type ResolvedFileBundlerFactory = (bundle: Bundle) => Bundle;
+type ResolvedFileBundlerFactory = (bundler: Bundler) => Promise<Bundle>;
 
-async function config(root: string, bundler: Bundler): Promise<Bundle> {
+async function config(bundler: Bundler, root = process.cwd()): Promise<BundleConfig> {
 	const adapter = new ConvertingBundleConfigRetriever({
 		config: new ExportConfigRetriever({
 			bundler,
@@ -48,41 +49,51 @@ async function config(root: string, bundler: Bundler): Promise<Bundle> {
 	return await adapter.get(root);
 }
 
-function watch(bundler: Bundle): Bundle {
+async function build(bundler: Bundler): Promise<Bundle> {
+	const { bundle } = await config(bundler);
 	return {
 		async build() {
+			return await bundle.build();
+		},
+
+		async dispose() {
+			await bundle.dispose();
+		},
+	};
+}
+
+async function watch(bundler: Bundler): Promise<Bundle> {
+	const {
+		bundle,
+		watch: { paths, ignored },
+	} = await config(bundler);
+
+	return {
+		async build() {
+			console.info(`${pc.blue("[cli]")} ${pc.dim(`Watching ${paths.join(" | ")}`)}`);
+			console.info(`${pc.blue("[cli]")} ${pc.dim(`Ignoring ${ignored.join(" | ")}`)}`);
+
 			process.stdin.setRawMode(true);
 			process.stdin.setEncoding("utf8");
 
 			const { watch } = await import("chokidar");
-			const watcher = watch("src/*", {
-				ignored: "dist",
+			const watcher = watch(paths, {
+				ignored,
 			});
 
-			// Promise is handled
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			watcher.on("all", async () => {
-				const start = Date.now();
-				try {
-					await bundler.build();
-					console.info(`⚡ Done rebuilding in ${Date.now() - start}ms`);
-				} catch (error) {
-					console.error(`⚡ Failed rebuilding in ${Date.now() - start}ms`, error);
-				}
+			const build = debounce(async () => {
+				await bundle.build();
 			});
+			watcher.on("all", build);
 
 			await new Promise<void>((resolve) => {
-				process.stdin.setRawMode(true);
-				process.stdin.setEncoding("utf8");
-
+				process.stdin.resume();
 				process.stdin.on("data", (input: string) => {
 					// ctrl+c or ctrl+d
 					if (input === "\u0003" || input === "\u0004") {
 						resolve();
 					}
 				});
-
-				process.stdin.resume();
 			});
 
 			await watcher.close();
@@ -92,7 +103,7 @@ function watch(bundler: Bundle): Bundle {
 
 		async dispose() {
 			try {
-				await bundler.dispose();
+				await bundle.dispose();
 			} finally {
 				process.stdin.pause();
 				process.stdin.setRawMode(false);
@@ -101,26 +112,24 @@ function watch(bundler: Bundle): Bundle {
 	};
 }
 
-async function execute(bundler: FileBundler, executor: ResolvedFileBundlerFactory = (bundle) => bundle): Promise<void> {
+async function execute(bundler: FileBundler, executor: ResolvedFileBundlerFactory): Promise<void> {
 	try {
 		// Bundle beforehand to eliminate repeated lookups for build
-		const bundle = executor(
-			await config(process.cwd(), {
-				// Satisfies interface
-				// eslint-disable-next-line @typescript-eslint/require-await
-				async bundle(entry) {
-					return {
-						async build() {
-							return await bundler.bundle(entry);
-						},
+		const bundle = await executor({
+			// Satisfies interface
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async bundle(entry) {
+				return {
+					async build() {
+						return await bundler.bundle(entry);
+					},
 
-						async dispose() {
-							// Do not dispose to ensure bundler available for actual file bundling
-						},
-					};
-				},
-			}),
-		);
+					async dispose() {
+						// Do not dispose to ensure bundler available for actual file bundling
+					},
+				};
+			},
+		});
 
 		try {
 			await bundle.build();
@@ -149,7 +158,8 @@ function run(factory: FileBundlerFactory) {
 			default: process.cwd(),
 		})
 		.action(async () => {
-			await execute(await factory());
+			const instance = await factory();
+			await execute(instance, build);
 		});
 
 	cli.command("watch", "Watch for file changes and rebuild application") //
@@ -157,8 +167,8 @@ function run(factory: FileBundlerFactory) {
 			if (!process.stdin.isTTY || process.env.CI) {
 				return;
 			}
-
-			await execute(await factory(), watch);
+			const instance = await factory();
+			await execute(instance, watch);
 		});
 
 	cli.help();

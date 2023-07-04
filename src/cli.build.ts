@@ -57,7 +57,7 @@ async function run(root = process.cwd()) {
 	try {
 		console.info(`${pc.bgBlue(" TSC ")} Bundling with ${pc.green("scaffolding")} mode.\n`);
 
-		const bundle = await retriever.get(root);
+		const { bundle } = await retriever.get(root);
 		try {
 			await bundle.build();
 		} finally {

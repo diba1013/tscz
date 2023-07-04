@@ -62,7 +62,7 @@ export type Config = {
 	/**
 	 * Whether to watch for file changes.
 	 */
-	watch?: boolean;
+	watch?: boolean | string[];
 
 	/**
 	 * The different entries to compile to the output directory.

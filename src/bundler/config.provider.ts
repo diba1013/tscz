@@ -1,4 +1,4 @@
-import type { Bundle, BundleConfigRetriever, BundleEntry, Bundler } from "@/bundler/bundler.types";
+import type { Bundle, BundleConfig, BundleConfigRetriever, BundleEntry, Bundler } from "@/bundler/bundler.types";
 import type {
 	Config,
 	ConfigEntryOutput,
@@ -80,15 +80,22 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 		this.$bundler = bundler;
 	}
 
-	async get(root: string): Promise<Bundle> {
+	async get(root: string): Promise<BundleConfig> {
 		const start = Date.now();
 		const configs = await this.$config.get(root);
+		// Gather watch paths
+		const watch = new Set<string>();
+		const ignored = new Set<string>(["**/{.git,node_modules,.vscode}/**"]);
 		// Remap configs to bundles
 		const entries: BundleEntry[] = [];
 		for (const config of wrap(configs)) {
 			for (const entry of this.toBundleEntries(config)) {
 				entries.push(entry);
 			}
+			for (const path of this.toWatchPaths(config)) {
+				watch.add(path);
+			}
+			ignored.add(`./${config.output ?? "dist"}/**`);
 		}
 		// compile bundles
 		const bundles = await Promise.all(
@@ -97,7 +104,10 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 			}),
 		);
 		console.info(`${pc.blue("[cli]")} ${pc.dim(`Warm up in ${Date.now() - start}ms`)}`);
-		return new BundledBundle(bundles);
+		return {
+			bundle: new BundledBundle(bundles),
+			watch: { paths: [...watch], ignored: [...ignored] },
+		};
 	}
 
 	private *toBundleEntries({
@@ -144,5 +154,15 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 
 	private extension(format: Format, type: Module = "commonjs"): string {
 		return EXTENSIONS[type]?.[format] ?? "js";
+	}
+
+	private toWatchPaths({ watch = true }: Config): string[] {
+		if (Array.isArray(watch)) {
+			return watch;
+		}
+		if (watch) {
+			return ["."];
+		}
+		return [];
 	}
 }

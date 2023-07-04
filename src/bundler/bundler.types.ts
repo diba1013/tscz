@@ -17,7 +17,15 @@ export type BundleEntry = {
 	env?: Record<string, string>;
 };
 
-export type BundleConfigRetriever = Retriever<Bundle>;
+export type BundleConfig = {
+	bundle: Bundle;
+	watch: {
+		paths: string[];
+		ignored: string[];
+	};
+};
+
+export type BundleConfigRetriever = Retriever<BundleConfig>;
 
 export type BundleOutput = {
 	file: string;
