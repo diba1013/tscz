@@ -10,7 +10,7 @@ jobs:
     env:
       NPM_GITHUB_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    name: "Build ${{ matrix.node_version }}"
+    name: "Build"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
