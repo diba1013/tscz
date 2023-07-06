@@ -39,7 +39,7 @@
 		"lint:fix": "eslint --fix ."
 	},
 	"peerDependencies": {
-		"typescript": "4.x"
+		"typescript": "5.x"
 	},
 	"dependencies": {
 		"cac": "^6.7.14",
@@ -47,26 +47,26 @@
 		"esbuild": "^0.18.11",
 		"esbuild-plugin-alias": "^0.2.1",
 		"picocolors": "^1.0.0",
-		"rollup": "^3.26.0",
+		"rollup": "^3.26.2",
 		"rollup-plugin-dts": "^5.3.0",
-		"tinypool": "^0.6.0"
+		"tinypool": "^0.7.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.6",
 		"@commitlint/config-conventional": "^17.6.6",
-		"@diba1013/eslint-config": "^0.6.4",
-		"@diba1013/prettier-config": "^0.6.4",
+		"@diba1013/eslint-config": "^0.7.2",
+		"@diba1013/prettier-config": "^0.7.2",
 		"@diba1013/tscz": "link:.",
-		"@types/node": "^20.3.3",
-		"@vitest/coverage-v8": "^0.32.2",
+		"@types/node": "^20.4.0",
+		"@vitest/coverage-v8": "^0.33.0",
 		"eslint": "^8.44.0",
 		"husky": "^8.0.3",
 		"lint-staged": "^13.2.3",
-		"prettier": "^2.8.8",
+		"prettier": "^3.0.0",
 		"ts-node": "^10.9.1",
 		"tsx": "^3.12.7",
 		"typescript": "^5.1",
-		"vite": "^4.3.9",
-		"vitest": "^0.32.2"
+		"vite": "^4.4.1",
+		"vitest": "^0.33.0"
 	}
 }
