@@ -25,8 +25,11 @@ export class TypeScriptConfigRetriever implements Retriever<TypeScriptConfig> {
 		const { config } = parseConfigFileTextToJson(input, content);
 		const { options, errors } = parseJsonConfigFileContent(config, sys, root);
 		if (errors.length > 0) {
-			const cause = errors.map((error) => {
-				return new Error(error.messageText.toString());
+			const cause = errors.map(({ messageText }) => {
+				if (typeof messageText === "string") {
+					return new Error(messageText);
+				}
+				return new Error(messageText.messageText);
 			});
 			throw new AggregateError(cause, `Could not parse ${input}`);
 		}

@@ -178,7 +178,7 @@ function run(factory: FileBundlerFactory) {
 }
 
 run(async (): Promise<FileBundler> => {
-	console.info(`${pc.bgBlue(" TSC ")} Bundling with ${pc.green(process.env.BUNDLED || "development")} mode.\n`);
+	console.info(`${pc.bgBlue(" TSC ")} Bundling with ${pc.green(process.env.BUNDLED ?? "development")} mode.\n`);
 
 	if (process.env.BUNDLED === "production") {
 		const { Tinypool } = await import("tinypool");

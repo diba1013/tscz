@@ -147,7 +147,7 @@ export class ConvertingBundleConfigRetriever implements BundleConfigRetriever {
 			yield typeof entry === "string"
 				? {
 						format: entry,
-				  }
+					}
 				: entry;
 		}
 	}
