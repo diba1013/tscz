@@ -14,17 +14,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
+      - name: "Prepare"
+        run: |
+          corepack enable
 
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: pnpm
 
       - name: Install
@@ -33,7 +32,7 @@ jobs:
 
       - name: Build
         run: |
-          pnpm build
+          pnpm run build
 
       - name: Publish
         run: |
